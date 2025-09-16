@@ -770,6 +770,23 @@
     margin-bottom: 0;
 }
 
+.doc-logo {
+  text-align: center; /* Centra el contenido dentro del div */
+  margin-bottom: 0px; /* Espacio debajo del logo */
+}
+
+.doc-logo img {
+  display: inline-block;
+  width: 400px;   /* Ajusta el ancho (estirado horizontal) */
+  height: auto;   /* Mantiene la proporción */
+  max-width: 100%; /* Evita que se deforme en pantallas chicas */
+}
+
+.doc-logo img {
+  width: 400px; 
+}
+
+
     </style>
 </head>
 <body>
@@ -983,7 +1000,7 @@
                     <button class="form-btn btn-outline" onclick="showView('dashboard')">
                         ⬅️ Volver al Dashboard
                     </button>
-                    <button class="form-btn btn-info" onclick="exportToPNG()">
+                    <button id="exportBtn" class="form-btn btn-info" >
                         📸 Exportar PNG
                     </button>
                     <button class="form-btn btn-success" onclick="exportToExcel()">
@@ -1391,7 +1408,10 @@
                     <h1 class="doc-title">FACTURA</h1>
                     <div class="doc-number">${invoice.number}</div>
                 </div>
-                
+                <div class="doc-logo">
+                  <img src="img/mundoVelas.jpg" alt="Logo Mundo de Velas"">
+                </div>
+
                 <div class="doc-info">
                     <div class="info-section">
                         <div class="info-title">🏢 MUNDO DE VELAS</div>
@@ -1445,7 +1465,6 @@
                         </tr>
                     </tbody>
                 </table>
-                
                 <div class="doc-footer">
                     <p><strong>¡Gracias por su preferencia!</strong></p>
                     <p>Factura generada digitalmente el ${new Date().toLocaleString('es-ES')}</p>
@@ -1492,42 +1511,56 @@
             }
         }
 
-        // Exportar a PNG
-        function exportToPNG() {
-            if (!currentInvoice) return;
-            
-            const element = document.getElementById('invoiceDocument');
-            const exportBtn = document.querySelector('[onclick="exportToPNG()"]');
-            
-            // Cambiar estado del botón
-            exportBtn.textContent = '📸 Exportando...';
-            exportBtn.disabled = true;
-            
-            html2canvas(element, {
-                scale: 2,
-                useCORS: true,
-                backgroundColor: '#ffffff',
-                width: element.scrollWidth,
-                height: element.scrollHeight
-            }).then(canvas => {
-                // Crear enlace de descarga
-                const link = document.createElement('a');
-                link.download = `Factura_${currentInvoice.number}.png`;
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-                
-                // Mostrar mensaje de éxito
-                alert('✅ Factura exportada como imagen PNG');
-                
-                // Restaurar botón
-                exportBtn.textContent = '📸 Exportar PNG';
-                exportBtn.disabled = false;
-            }).catch(error => {
-                alert('❌ Error al exportar la imagen: ' + error.message);
-                exportBtn.textContent = '📸 Exportar PNG';
-                exportBtn.disabled = false;
-            });
+        // Listener para el botón exportar PNG
+document.addEventListener('DOMContentLoaded', () => {
+    const exportBtn = document.getElementById('exportBtn');
+
+    exportBtn.addEventListener('click', () => {
+        const logoImg = document.querySelector('.doc-logo img');
+        
+        if (!logoImg.complete) {
+            // Esperar a que la imagen cargue antes de exportar
+            logoImg.onload = () => exportToPNG(exportBtn);
+        } else {
+            exportToPNG(exportBtn);
         }
+    });
+});
+
+// Función exportar PNG mejorada
+function exportToPNG(exportBtn) {
+    if (!currentInvoice) return;
+
+    const element = document.getElementById('invoiceDocument');
+    
+    // Cambiar estado del botón
+    exportBtn.textContent = '📸 Exportando...';
+    exportBtn.disabled = true;
+
+    html2canvas(element, {
+        scale: 3,
+        useCORS: true,
+        backgroundColor: '#ffffff'
+    }).then(canvas => {
+        // Crear enlace de descarga
+        const link = document.createElement('a');
+        link.download = `Factura_${currentInvoice.number}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+
+        // Mostrar mensaje de éxito
+        alert('✅ Factura exportada como imagen PNG');
+
+        // Restaurar botón
+        exportBtn.textContent = '📸 Exportar PNG';
+        exportBtn.disabled = false;
+    }).catch(error => {
+        alert('❌ Error al exportar la imagen: ' + error.message);
+        exportBtn.textContent = '📸 Exportar PNG';
+        exportBtn.disabled = false;
+    });
+}
+
 
         // Exportar a Excel
         function exportToExcel() {
